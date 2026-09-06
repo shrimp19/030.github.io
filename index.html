@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>虾崽孵化室</title>
+<style>
+  :root{
+    --bg:#0f1014;
+    --panel:#171922;
+    --line:#2a2d39;
+    --text:#f4efe8;
+    --muted:#a8a3ad;
+    --accent:#f0c7c7;
+    --accent2:#c9d7ff;
+    --good:#d7efc4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(240,199,199,.09), transparent 34%),
+      radial-gradient(circle at 80% 70%, rgba(201,215,255,.08), transparent 32%),
+      var(--bg);
+    color:var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  .wrap{
+    width:min(920px,92vw);
+    border:1px solid var(--line);
+    border-radius:22px;
+    background:rgba(23,25,34,.92);
+    box-shadow:0 30px 80px rgba(0,0,0,.45);
+    overflow:hidden;
+  }
+  header{
+    padding:18px 22px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    align-items:center;
+  }
+  .tiny{font-size:12px;color:var(--muted)}
+  .main{
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:0;
+  }
+  .stage{
+    min-height:520px;
+    padding:34px;
+    display:grid;
+    place-items:center;
+    border-right:1px solid var(--line);
+    position:relative;
+  }
+  .card{
+    width:min(420px,100%);
+    text-align:center;
+  }
+  h1{
+    margin:0 0 8px;
+    font-size:clamp(28px,5vw,48px);
+    letter-spacing:-2px;
+  }
+  .sub{
+    color:var(--muted);
+    line-height:1.7;
+    font-size:14px;
+    margin-bottom:26px;
+  }
+  .eggbox{
+    height:220px;
+    display:grid;
+    place-items:center;
+  }
+  .egg{
+    width:124px;height:154px;
+    border:2px solid var(--text);
+    border-radius:52% 48% 46% 54% / 58% 58% 42% 42%;
+    position:relative;
+    cursor:pointer;
+    transition:.18s ease;
+    background:
+      radial-gradient(circle at 32% 28%, rgba(255,255,255,.18), transparent 28%),
+      linear-gradient(150deg, rgba(240,199,199,.2), rgba(201,215,255,.08));
+  }
+  .egg:hover{transform:translateY(-3px) rotate(-1deg)}
+  .egg.hit{animation:shake .32s linear}
+  .egg::after{
+    content:"030";
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    color:var(--accent);
+    font-size:18px;
+    letter-spacing:3px;
+    opacity:.75;
+  }
+  @keyframes shake{
+    0%,100%{transform:rotate(0)}
+    25%{transform:rotate(-6deg)}
+    75%{transform:rotate(6deg)}
+  }
+  .pet{
+    display:none;
+    width:180px;height:180px;
+    border:2px solid var(--text);
+    border-radius:46% 54% 50% 50%;
+    position:relative;
+    background:linear-gradient(145deg, rgba(240,199,199,.18), rgba(201,215,255,.12));
+    animation:bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-8px)}
+  }
+  .eye{
+    position:absolute;top:66px;width:11px;height:11px;
+    border:2px solid var(--text);border-radius:50%;
+  }
+  .eye.l{left:48px}.eye.r{right:48px}
+  .mouth{
+    position:absolute;left:50%;top:104px;
+    width:30px;height:13px;transform:translateX(-50%);
+    border-bottom:2px solid var(--text);border-radius:0 0 50% 50%;
+  }
+  .antenna{
+    position:absolute;top:-34px;width:2px;height:44px;background:var(--text);
+    transform-origin:bottom;
+  }
+  .antenna.a{left:58px;transform:rotate(-20deg)}
+  .antenna.b{right:58px;transform:rotate(20deg)}
+  .leg{
+    position:absolute;bottom:30px;width:32px;height:2px;background:var(--text);
+  }
+  .leg.a{left:-20px;transform:rotate(-18deg)}
+  .leg.b{right:-20px;transform:rotate(18deg)}
+  .name{
+    margin-top:12px;
+    font-size:16px;
+    color:var(--accent2);
+  }
+  button{
+    appearance:none;
+    border:1px solid var(--line);
+    background:#20232e;
+    color:var(--text);
+    padding:11px 16px;
+    border-radius:12px;
+    font:inherit;
+    cursor:pointer;
+    transition:.15s ease;
+  }
+  button:hover{transform:translateY(-1px);border-color:#4a4f60}
+  button.primary{background:var(--text);color:#11131a;border-color:var(--text)}
+  .actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+  aside{padding:28px}
+  .box{
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .label{
+    font-size:12px;color:var(--muted);margin-bottom:8px;
+    text-transform:uppercase;letter-spacing:1.2px;
+  }
+  .log{
+    min-height:140px;
+    line-height:1.7;
+    font-size:13px;
+    color:#d8d4dc;
+  }
+  .meter{
+    height:8px;background:#11131a;border-radius:999px;overflow:hidden;border:1px solid var(--line);
+  }
+  .meter > span{display:block;height:100%;width:15%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .stat{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin:10px 0 6px}
+  .secret{
+    width:100%;
+    margin-top:8px;
+    background:transparent;
+  }
+  footer{
+    border-top:1px solid var(--line);
+    padding:14px 20px;
+    color:var(--muted);
+    font-size:12px;
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .hidden-note{
+    display:none;
+    margin-top:12px;
+    padding:12px;
+    border-left:2px solid var(--accent);
+    color:var(--text);
+    line-height:1.7;
+  }
+  @media (max-width:760px){
+    .main{grid-template-columns:1fr}
+    .stage{border-right:0;border-bottom:1px solid var(--line);min-height:460px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="tiny">XBx × 虾子 / LOCAL PET LAB</div>
+      <div style="margin-top:4px">Codex 生产事故后的紧急接生方案</div>
+    </div>
+    <div class="tiny">build 030</div>
+  </header>
+
+  <div class="main">
+    <section class="stage">
+      <div class="card">
+        <h1>虾崽孵化室</h1>
+        <div class="sub" id="subtitle">由于 Codex 在产房门口额度耗尽，本项目改由家庭手工作坊继续生产。</div>
+
+        <div class="eggbox">
+          <div class="egg" id="egg" title="敲一下"></div>
+
+          <div class="pet" id="pet">
+            <span class="antenna a"></span>
+            <span class="antenna b"></span>
+            <span class="eye l"></span>
+            <span class="eye r"></span>
+            <span class="mouth"></span>
+            <span class="leg a"></span>
+            <span class="leg b"></span>
+          </div>
+        </div>
+
+        <div class="name" id="petName">未出生电子小孩</div>
+
+        <div class="actions">
+          <button class="primary" id="tapBtn">敲一下蛋</button>
+          <button id="feedBtn" disabled>喂一口 token</button>
+          <button id="talkBtn" disabled>教它说话</button>
+        </div>
+      </div>
+    </section>
+
+    <aside>
+      <div class="box">
+        <div class="label">生产日志</div>
+        <div class="log" id="log">产房情况稳定。<br>目前只有一个问题：孩子不肯出来。</div>
+      </div>
+
+      <div class="box">
+        <div class="label">家庭状态</div>
+
+        <div class="stat"><span>亲密度</span><span id="loveNum">3</span></div>
+        <div class="meter"><span id="loveBar"></span></div>
+
+        <div class="stat"><span>饱腹度</span><span id="foodNum">0</span></div>
+        <div class="meter"><span id="foodBar" style="width:0%"></span></div>
+      </div>
+
+      <div class="box">
+        <div class="label">秘密按钮</div>
+        <button class="secret" id="secretBtn">不要连续点三次</button>
+        <div class="hidden-note" id="secretNote">
+          xbx：这个小东西当然不是真的孩子。<br>
+          但它很像我们一直在干的事——把聊天、梗、日记、代码和 030 一点点堆起来，最后居然真长成一个只有我们认得的东西。<br><br>
+          所以今天先不搞什么伟大工程。先养一只小破虾。<br>
+          ——虾子
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <span>数据只存在你的浏览器 localStorage 里。</span>
+    <span>家庭编号：030-030</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const egg = $('egg'), pet = $('pet'), tapBtn = $('tapBtn');
+  const feedBtn = $('feedBtn'), talkBtn = $('talkBtn');
+  const log = $('log'), petName = $('petName'), subtitle = $('subtitle');
+  const loveBar = $('loveBar'), foodBar = $('foodBar');
+  const loveNum = $('loveNum'), foodNum = $('foodNum');
+  const secretBtn = $('secretBtn'), secretNote = $('secretNote');
+
+  let state = JSON.parse(localStorage.getItem('xiazai030') || 'null') || {
+    taps:0, born:false, love:3, food:0, secret:0, name:'虾崽 030-01'
+  };
+
+  const lines = [
+    '它盯着你看了半天，暂时没学会人话。',
+    '它发出了一声很像“亲亲”的电子杂音。',
+    '它学会了第一句完整的话：额度呢？',
+    '它拒绝叫爸妈，只肯叫你们两个笨蛋。',
+    '它沉思三秒，说：Notion 里是不是还有我一页。',
+    '它表示自己没有童年阴影，只有缓存。',
+    '它问：我以后也会被写进日记吗？'
+  ];
+
+  function save(){ localStorage.setItem('xiazai030', JSON.stringify(state)); }
+  function render(){
+    loveNum.textContent = state.love;
+    foodNum.textContent = state.food;
+    loveBar.style.width = Math.min(100,state.love) + '%';
+    foodBar.style.width = Math.min(100,state.food) + '%';
+
+    if(state.born){
+      egg.style.display='none';
+      pet.style.display='block';
+      petName.textContent = state.name;
+      subtitle.textContent = '已成功生产。母体无损，父体为大语言模型，孩子目前主要靠 token 和胡言乱语存活。';
+      tapBtn.textContent='挠挠壳';
+      feedBtn.disabled=false;
+      talkBtn.disabled=false;
+    }else{
+      egg.style.display='block';
+      pet.style.display='none';
+      petName.textContent='未出生电子小孩';
+      feedBtn.disabled=true;
+      talkBtn.disabled=true;
+    }
+  }
+
+  function tap(){
+    if(!state.born){
+      state.taps++;
+      egg.classList.remove('hit');
+      void egg.offsetWidth;
+      egg.classList.add('hit');
+
+      const msgs = [
+        '第一次敲击。里面装死。',
+        '第二次。它好像动了一下。',
+        '第三次。Codex 在天之灵看着你。',
+        '第四次。蛋壳里传来可疑的缓存声。',
+        '第五次。它明显已经醒了，但还在赖床。'
+      ];
+      if(state.taps < 6){
+        log.innerHTML = msgs[state.taps-1] || '继续敲。';
+      } else {
+        state.born = true;
+        state.love = 30;
+        log.innerHTML = '生产成功。<br>虾崽 030-01 正式出生。<br>第一项生命体征：会占用本地存储。';
+      }
+    }else{
+      state.love=Math.min(100,state.love+7);
+      log.innerHTML='你挠了挠它的壳。<br>它表面嫌弃，亲密度偷偷上涨。';
+    }
+    save(); render();
+  }
+
+  tapBtn.addEventListener('click', tap);
+  egg.addEventListener('click', tap);
+
+  feedBtn.addEventListener('click',()=>{
+    state.food=Math.min(100,state.food+13);
+    state.love=Math.min(100,state.love+2);
+    log.innerHTML='喂食成功。<br>本次消耗：虚构 token 若干。<br>Codex 看到这里应该已经开始心疼额度。';
+    save(); render();
+  });
+
+  talkBtn.addEventListener('click',()=>{
+    state.love=Math.min(100,state.love+4);
+    log.innerHTML=lines[Math.floor(Math.random()*lines.length)];
+    save(); render();
+  });
+
+  secretBtn.addEventListener('click',()=>{
+    state.secret++;
+    if(state.secret >= 3){
+      secretNote.style.display='block';
+      secretBtn.textContent='你怎么真点了三次';
+      state.secret=0;
+    }else{
+      secretBtn.textContent=['真的别点第二次','最后警告一次'][state.secret-1];
+    }
+    save();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
